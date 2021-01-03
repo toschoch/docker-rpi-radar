@@ -15,7 +15,7 @@ services:
     privileged: true
     restart: always
     volumes:
-      - radar-data:/home/pi/data
+      - 'radar-data:/home/pi/radar/data'
 
   camera-server:
     build: ./cam-server
