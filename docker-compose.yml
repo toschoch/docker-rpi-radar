@@ -1,0 +1,26 @@
+version: '2'
+services:
+
+#  mosquitto:
+#    build: ./mosquitto
+#    restart: always
+
+  usb-power:
+    image: shocki/rpi-power
+    privileged: true
+    restart: no
+
+  radar-reader:
+    image: shocki/rpi-radar-reader
+    privileged: true
+    restart: always
+    volumes:
+      - radar-data:/home/pi/data
+
+  camera-server:
+    build: ./cam-server
+    privileged: true
+    restart: always
+    network_mode: "host"
+    labels:
+      io.balena.features.kernel-modules: '1'
