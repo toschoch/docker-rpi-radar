@@ -6,16 +6,21 @@ services:
 #    restart: always
 
   usb-power:
-    image: shocki/rpi-power
+    image: shocki/rpi-mqtt-usb-power-switch
+    environment:
+      - MQTT_BROKER_ADDRESS=http://dietzi.ch:1883
     privileged: true
-    restart: no
 
   radar-reader:
     image: shocki/rpi-radar-reader
     privileged: true
     restart: always
+    labels:
+      io.balena.features.kernel-modules: '1'
+      io.balena.features.sysfs: '1'
+      io.balena.features.procfs: '1'
     volumes:
-      - 'radar-data:/home/pi/radar/data'
+      - radar-data:/home/pi/radar/data
 
   camera-server:
     build: ./cam-server
@@ -24,3 +29,6 @@ services:
     network_mode: "host"
     labels:
       io.balena.features.kernel-modules: '1'
+
+volumes:
+  radar-data:
