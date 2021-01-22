@@ -1,29 +1,27 @@
 version: '2'
 services:
 
-#  mosquitto:
-#    build: ./mosquitto
-#    restart: always
+  power-pijuice:
+    image: shocki/rpi-pijuice-mqtt
+    privileged: true
 
   usb-power:
     image: shocki/rpi-mqtt-usb-power-switch
-    environment:
-      - MQTT_BROKER_ADDRESS=http://dietzi.ch:1883
     privileged: true
 
   radar-reader:
-    image: shocki/rpi-radar-reader
+    image: shocki/rpi-radar-reader:0.0.2
     privileged: true
     restart: always
+    ports:
+      - 5555:5555
     labels:
       io.balena.features.kernel-modules: '1'
-      io.balena.features.sysfs: '1'
-      io.balena.features.procfs: '1'
     volumes:
-      - radar-data:/home/pi/radar/data
+      - radar-data:/radar
 
   camera-server:
-    build: ./cam-server
+    image: shocki/rpi-cam-server
     privileged: true
     restart: always
     network_mode: "host"
