@@ -10,7 +10,7 @@ services:
     privileged: true
 
   radar-reader:
-    image: shocki/rpi-radar-reader:0.0.2
+    image: shocki/rpi-radar-reader:0.0.3
     privileged: true
     restart: always
     ports:
