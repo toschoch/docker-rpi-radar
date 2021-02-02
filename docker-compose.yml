@@ -25,6 +25,11 @@ services:
     privileged: true
     restart: always
     network_mode: "host"
+    environment:
+      - STUN_SERVER=stun:stun.l.google.com:19302
+      - TURN_SERVER=turn:192.168.0.21:3478
+      - TURN_USERNAME=radar-pi
+      - TURN_PASSWORD=KYfFvFke2E7iFs
     labels:
       io.balena.features.kernel-modules: '1'
 
