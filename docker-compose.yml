@@ -1,13 +1,24 @@
 version: '2'
 services:
 
+  mqtt-broker:
+    build: mqtt-broker
+    ports:
+      - 1883:1883
+    volumes:
+      - mosquitto-data:/mosquitto/data
+
   power-pijuice:
     image: shocki/rpi-pijuice-mqtt
     privileged: true
+    environment:
+      - MQTT_BROKER_ADDRESS=http://mqtt-broker:1883
 
   usb-power:
     image: shocki/rpi-mqtt-usb-power-switch
     privileged: true
+    environment:
+      - MQTT_BROKER_ADDRESS=http://mqtt-broker:1883
 
   radar-reader:
     image: shocki/rpi-radar-reader:0.0.3
@@ -19,27 +30,39 @@ services:
       io.balena.features.kernel-modules: '1'
     volumes:
       - radar-data:/radar
+    environment:
+      - MQTT_BROKER=tcp://mqtt-broker:1883
 
-  mic-server:
+  mic-reader:
     image: shocki/rpi-mic-stream
     privileged: true
-    network_mode: host
+    ports:
+      - 5554:5554
     labels:
       io.balena.features.kernel-modules: '1'
-    command: -ac 1 -ar 8000 -f alsa -i hw:1,0 -acodec mp3 -b:a 128k -f rtp rtp://0.0.0.0:5554
+#    command: -ac 1 -ar 8000 -f alsa -i hw:1,0 -acodec mp3 -b:a 128k -f rtp rtp://0.0.0.0:5554
 
-  camera-server:
-    image: shocki/rpi-cam-server
+  cam-reader:
+    image: shocki/rpi-cam-reader
     privileged: true
-    restart: always
-    network_mode: "host"
-    environment:
-      - STUN_SERVER=stun:stun.l.google.com:19302
-      - TURN_SERVER=turn:192.168.0.21:3478
-      - TURN_USERNAME=radar-pi
-      - TURN_PASSWORD=KYfFvFke2E7iFs
+    ports:
+      - 5553:5553
     labels:
       io.balena.features.kernel-modules: '1'
+
+
+#  camera-server:
+#    image: shocki/rpi-cam-server
+#    privileged: true
+#    restart: always
+#    network_mode: "host"
+#    environment:
+#      - STUN_SERVER=stun:stun.l.google.com:19302
+#      - TURN_SERVER=turn:192.168.0.21:3478
+#      - TURN_USERNAME=radar-pi
+#      - TURN_PASSWORD=KYfFvFke2E7iFs
+#    labels:
+#      io.balena.features.kernel-modules: '1'
 
 volumes:
   radar-data:
