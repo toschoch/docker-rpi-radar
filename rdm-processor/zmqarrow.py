@@ -5,7 +5,7 @@ import pytz
 import pyarrow as pa
 
 
-class ArrowSender:
+class ZmqArrow:
     """Opens a zmq socket and sends images
     Opens a zmq (REQ or PUB) socket on the image sending computer, often a
     Raspberry Pi, that will be sending OpenCV images and
@@ -23,7 +23,7 @@ class ArrowSender:
                           if False, a PUB socket will be created
     """
 
-    def __init__(self, address='tcp://127.0.0.1:5555'):
+    def __init__(self, address='tcp://127.0.0.1:5555', socket_type=zmq.SUB):
         """Initializes zmq socket for sending images to the hub.
         Expects an appropriate ZMQ socket at the connect_to tcp:port address:
         If REQ_REP is True (the default), then a REQ socket is created. It
@@ -32,10 +32,15 @@ class ArrowSender:
         a matching SUB socket on the ImageHub().
         """
 
-        socket_type = zmq.PUB
-        self.zmq_socket = self.zmq_context.socket(socket_type)
         self.zmq_context = SerializingContext()
-        self.zmq_socket.bind(address)
+        self.zmq_socket = self.zmq_context.socket(socket_type)
+        if socket_type == zmq.SUB:
+            self.zmq_socket.connect(address)
+            self.zmq_socket.setsockopt(zmq.SUBSCRIBE, b'')
+        elif socket_type == zmq.PUB:
+            self.zmq_socket.bind(address)
+        else:
+            raise NotImplementedError("Only PUB/SUB implemented so far")
 
     def close(self):
         """Closes the ZMQ socket and the ZMQ context.
@@ -81,26 +86,24 @@ class SerializingSocket(zmq.Socket):
           track: (optional) zmq track flag.
         """
 
-        buf = pa.Buffer()
-        pa.ipc.write_tensor(tensor, buf)
+        sink = pa.BufferOutputStream()
+        pa.ipc.write_tensor(tensor, sink)
 
-        msg = [
-            struct.pack(self.time_byte_format, t.timestamp())[0],
-            buf
-        ]
-        return self.send_multipart(msg, copy=copy, track=track)
+        self.send(struct.pack(self.time_byte_format, t.timestamp()), copy=False, flags=flags | zmq.SNDMORE)
+        return self.send(sink.getvalue(), copy=False, flags=flags, track=track)
 
-    def recv_time_and_tensor(self, flags=0, track=False):
+    def recv_time_and_tensor(self, copy=False, flags=0, track=False):
         """Receives a jpg buffer and a text msg.
         Receives a apache arrow tensor and a time stamp
         Arguments:
+          copy:
           flags: (optional) zmq flags.
           track: (optional) zmq track flag.
         Returns:
           t: (datetime)
           tensor: (pyarrow.tensor), tensor.
         """
-        frames = self.recv_multipart(copy=False)
+        frames = self.recv_multipart(copy=copy)
 
         t = struct.unpack(self.time_byte_format, frames[0].buffer)[0]
         t = datetime.datetime.fromtimestamp(t, pytz.utc)

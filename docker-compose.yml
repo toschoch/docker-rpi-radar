@@ -20,6 +20,13 @@ services:
     environment:
       - MQTT_BROKER_ADDRESS=http://mqtt-broker:1883
 
+  rdm-processor:
+    image: shocki/rpi-rdm-processor
+    ports:
+      - 5556:5556
+    environment:
+      - ZMQ_INPUT=radar-reader:5555
+
   radar-reader:
     image: shocki/rpi-radar-reader:0.0.3
     privileged: true
@@ -49,7 +56,6 @@ services:
       - 5553:5553
     labels:
       io.balena.features.kernel-modules: '1'
-
 
 #  camera-server:
 #    image: shocki/rpi-cam-server

@@ -1,13 +1,68 @@
-FROM balenalib/raspberrypi3-python:3.7-run
+FROM balenalib/raspberrypi3-python:3.7-build as builder
 
-RUN install_packages libatlas3-base v4l-utils
+RUN apt-get update \
+    && apt-get install -y build-essential libatlas3-base\
+                          libjemalloc-dev libboost-dev \
+                          libboost-filesystem-dev \
+                          libboost-system-dev \
+                          libboost-regex-dev \
+                          python3-dev \
+                          autoconf \
+                          flex \
+                          git \
+                          bison \
+                          cmake
 
-# Enable the v4l2 driver for the Raspberry Pi camera
-#RUN printf "bcm2835-v4l2\n" >> /etc/modules
-RUN pip install --upgrade pip wheel && pip install numpy opencv-python imagezmq --index-url https://www.piwheels.org/simple
 
-RUN install_packages libaom0 libatk-bridge2.0-0 libatk1.0-0 libatlas3-base libatspi2.0-0 libavcodec58 libavformat58 libavutil56 libbluray2 libcairo-gobject2 libcairo2 libchromaprint1 libcodec2-0.8.1 libcroco3 libdatrie1 libdrm2 libepoxy0 libfontconfig1 libgdk-pixbuf2.0-0 libgfortran5 libgme0 libgraphite2-3 libgsm1 libgtk-3-0 libharfbuzz0b libilmbase23 libjbig0 libmp3lame0 libmpg123-0 libogg0 libopenexr23 libopenjp2-7 libopenmpt0 libopus0 libpango-1.0-0 libpangocairo-1.0-0 libpangoft2-1.0-0 libpixman-1-0 librsvg2-2 libshine3 libsnappy1v5 libsoxr0 libspeex1 libssh-gcrypt-4 libswresample3 libswscale5 libthai0 libtheora0 libtiff5 libtwolame0 libva-drm2 libva-x11-2 libva2 libvdpau1 libvorbis0a libvorbisenc2 libvorbisfile3 libvpx5 libwavpack1 libwayland-client0 libwayland-cursor0 libwayland-egl1 libwebp6 libwebpmux3 libx264-155 libx265-165 libxcb-render0 libxcb-shm0 libxcomposite1 libxcursor1 libxdamage1 libxfixes3 libxi6 libxinerama1 libxkbcommon0 libxrandr2 libxrender1 libxvidcore4 libzvbi0
+RUN pip install --upgrade pip wheel && \
+    pip wheel numpy pyzmq pytz Cython --extra-index-url https://www.piwheels.org/simple --wheel-dir \wheels &&\
+    pip install --no-index --find-links /wheels numpy pyzmq Cython
 
-COPY read_cam.py ./
+ARG ARROW_BUILD_TYPE=release
+ENV ARROW_HOME=/usr/local \
+    PARQUET_HOME=/usr/local
 
-CMD ["python3", "read_cam.py"]
+RUN git clone https://github.com/apache/arrow.git && cd arrow && git checkout apache-arrow-3.0.0 && cd ..
+RUN mkdir arrow/cpp/build && \
+    cd arrow/cpp/build && \
+
+    cmake -DCMAKE_BUILD_TYPE=$ARROW_BUILD_TYPE \
+      -DCMAKE_INSTALL_LIBDIR=lib \
+      -DCMAKE_INSTALL_PREFIX=$ARROW_HOME \
+      -DARROW_WITH_BZ2=ON \
+      -DARROW_WITH_ZLIB=ON \
+      -DARROW_WITH_ZSTD=ON \
+      -DARROW_WITH_LZ4=ON \
+      -DARROW_WITH_SNAPPY=ON \
+      -DARROW_WITH_BROTLI=ON \
+      -DARROW_PARQUET=ON \
+      -DARROW_PYTHON=ON \
+      -DARROW_IPC=ON \
+      -DARROW_BUILD_TESTS=OFF \
+       .. && \
+    make -j4 && \
+    make install &&\
+    cd ..
+
+
+RUN cd arrow/python && \
+    export PYARROW_WITH_PARQUET=1 && \
+    pip install -r requirements-build.txt && \
+    python setup.py build_ext --build-type=$ARROW_BUILD_TYPE --with-parquet \
+       --bundle-arrow-cpp bdist_wheel
+RUN cp /arrow/python/dist/*.whl /wheels
+
+FROM balenalib/raspberrypi3-python:3.7-run as runner
+
+RUN install_packages libatlas3-base
+
+COPY --from=builder /wheels /wheels
+COPY requirements.txt /
+
+RUN pip install --upgrade pip wheel && \
+    pip install -r requirements.txt --no-index --find-links \wheels && \
+    rm -rf \wheels
+
+COPY *.py ./
+
+CMD ["python3", "process.py"]
