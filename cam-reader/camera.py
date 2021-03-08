@@ -1,5 +1,6 @@
 import cv2
 import datetime
+import logging
 
 font = cv2.FONT_HERSHEY_SIMPLEX
 bottomLeftCornerOfText = (10, 400)
@@ -7,6 +8,7 @@ fontScale = 0.75
 fontColor = (255, 255, 255)
 lineType = 2
 
+log = logging.getLogger(__name__)
 
 class Camera:
     codec = cv2.VideoWriter_fourcc(*'mp4v')
@@ -16,7 +18,6 @@ class Camera:
         self.camera_id = camera_id
 
         self.recorder = None
-        self.recording_start_time = None
 
     @staticmethod
     def add_timestamp(image, t=None):
@@ -62,17 +63,16 @@ class Camera:
         self.cap.set(4, height)
 
     def record(self, frame):
-        self.start_recording()
         self.recorder.write(frame)
 
-    def start_recording(self):
+    def start_recording(self, filename):
         if self.recorder is None:
-            t = datetime.datetime.utcnow()
-            self.recorder = cv2.VideoWriter(t.strftime('%Y-%m-%dT%H-%M-%S.mp4'), self.codec, 10,
+            log.debug("started recording to file {}".format(filename))
+            self.recorder = cv2.VideoWriter(filename, self.codec, 10,
                                             tuple(map(int, self.get_resolution())))
-            self.recording_start_time = t
 
     def stop_recording(self):
         if self.recorder is not None:
+            log.debug("stopped recording...")
             self.recorder.release()
             self.recorder = None
