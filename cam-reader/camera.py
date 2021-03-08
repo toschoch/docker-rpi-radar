@@ -16,6 +16,7 @@ class Camera:
     def __init__(self, camera_id: int = 0):
         self.cap = None
         self.camera_id = camera_id
+        self.name = "camera{}".format(camera_id)
 
         self.recorder = None
 

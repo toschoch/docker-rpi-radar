@@ -33,29 +33,32 @@ class AppLogic:
         self.camera_should_be_recording = bool(int(msg.payload))
 
     def start_cam(self):
-        log.info("start camera 1")
+        log.info("start {} on {}...".format(self.camera.name, self.device_name))
         self.camera.switch_on()
-        self.mqtt.publish('{}/camera/1/power/state'.format(self.device_name), 1)
+        self.mqtt.publish('{}/camera/{}/power/state'.format(self.device_name, self.camera.camera_id), 1)
 
     def stop_cam(self):
-        log.info("stop camera 1")
+        log.info("stop {} on {}...".format(self.camera.name, self.device_name))
         self.camera.stop_recording()
-        self.mqtt.publish('{}/camera/1/recording/state'.format(self.device_name), 0)
+        self.mqtt.publish('{}/camera/{}/recording/state'.format(self.device_name, self.camera.camera_id), 0)
         self.camera.switch_off()
-        self.mqtt.publish('{}/camera/1/power/state'.format(self.device_name), 0)
+        self.mqtt.publish('{}/camera/{}/power/state'.format(self.device_name, self.camera.camera_id), 0)
 
     def start_recording(self):
-        log.info("start recording camera 1")
+        log.info("start recording on {} ({})...".format(self.camera.name, self.device_name))
+        if not self.camera.is_on():
+            self.start_cam()
         self.record = self.db.new(suffix='.mp4', start_time=time.time(),
-                          device=self.device_name, camera='camera1')
+                                  device=self.device_name, camera=self.camera.name, camera_id = self.camera.camera_id)
         self.camera.start_recording(str(self.record.path))
-        self.mqtt.publish('{}/camera/1/recording/state'.format(self.device_name), 1)
+        self.mqtt.publish('{}/camera/{}/recording/state'.format(self.device_name, self.camera.camera_id), 1)
 
     def stop_recording(self):
-        log.info("stop recording camera 1")
+        log.info("stop recording on {} ({})...".format(self.camera.name, self.device_name))
         self.camera.stop_recording()
-        self.mqtt.publish('{}/camera/1/recording/state'.format(self.device_name), 0)
+        self.mqtt.publish('{}/camera/{}/recording/state'.format(self.device_name, self.camera.camera_id), 0)
         if self.record is not None:
+            self.record.meta["end_time"] = time.time()
             self.db.created(self.record)
 
     def loop_forever(self):
