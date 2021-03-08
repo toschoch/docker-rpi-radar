@@ -1,6 +1,17 @@
 version: '2'
 services:
 
+  data-loader:
+    image: joseluisq/static-web-server:1.14.0-alpine
+    environment:
+        - SERVER_NAME=radar-data
+        - SERVER_HOST=127.0.0.1
+        - SERVER_PORT=80
+        - SERVER_ROOT=/public
+        - SERVER_ASSETS=/public/assets
+    volumes:
+        - radar-data:/public/data
+
   mqtt-broker:
     build: mqtt-broker
     ports:
