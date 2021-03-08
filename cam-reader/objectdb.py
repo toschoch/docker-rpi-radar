@@ -1,6 +1,7 @@
 from pathlib import Path
 import uuid
 import json
+import os
 
 
 class Object:
@@ -20,10 +21,11 @@ class Object:
 
 
 class ObjectDB:
-    base_path = Path('.')
+    base_path = Path(os.environ.get('DB_PATH', '/data'))
 
     def __init__(self, mqtt):
         self.mqtt = mqtt
+        os.makedirs(self.base_path, exist_ok=True)
 
     def new(self, **kwargs) -> Object:
         obj = Object(base_path=ObjectDB.base_path, **kwargs)
