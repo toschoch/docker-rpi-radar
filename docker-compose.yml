@@ -58,6 +58,8 @@ services:
       - 5553:5553
     labels:
       io.balena.features.kernel-modules: '1'
+    environment:
+      - MQTT_BROKER=tcp://mqtt-broker:1883
 
 #  camera-server:
 #    image: shocki/rpi-cam-server

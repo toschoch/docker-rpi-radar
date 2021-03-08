@@ -15,7 +15,7 @@ class MQTTClient(mqtt.Client):
         device_name = os.environ['BALENA_DEVICE_NAME_AT_INIT']
 
         log.info("create mqtt client...")
-        credentials = os.environ['MQTT_CREDENTIALS']
+        credentials = os.environ.get('MQTT_CREDENTIALS', ':')
         if os.path.isfile(credentials):
             with open(credentials, 'r') as fp:
                 username, pw = fp.read().split(':')
@@ -24,7 +24,8 @@ class MQTTClient(mqtt.Client):
 
         # Create client
         mqtt.Client.__init__(self, client_id="{}/{}".format(device_name, service_name), userdata=userdata)
-        self.username_pw_set(username, pw)
+        if len(username) > 0:
+            self.username_pw_set(username, pw)
         self.enable_logger()
         self.reconnect_delay_set(min_delay=1, max_delay=120)
 
