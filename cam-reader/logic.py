@@ -23,6 +23,14 @@ class AppLogic:
         self.camera_should_be_recording = False
         self.record = None
 
+        self.frame_counter = 0
+        self.t_start_counter = 0
+        self.t_start_frame = 0
+        self.target_fps = 5
+        self.effective_fps = self.target_fps
+        self.proc_time = 0.05
+        self.sleep_s = 1. / self.target_fps - self.proc_time
+
         self.mqtt.subscribe('{}/camera/1/power/toggle'.format(self.device_name), self.on_cam_toggle)
         self.mqtt.subscribe('{}/camera/1/recording/toggle'.format(self.device_name), self.on_cam_recording_toggle)
 
@@ -49,7 +57,7 @@ class AppLogic:
         if not self.camera.is_on():
             self.start_cam()
         self.record = self.db.new(suffix='.mp4', start_time=time.time(),
-                                  device=self.device_name, camera=self.camera.name, camera_id = self.camera.camera_id)
+                                  device=self.device_name, camera=self.camera.name, camera_id=self.camera.camera_id)
         self.camera.start_recording(str(self.record.path))
         self.mqtt.publish('{}/camera/{}/recording/state'.format(self.device_name, self.camera.camera_id), 1)
 
@@ -61,11 +69,30 @@ class AppLogic:
             self.record.meta["end_time"] = time.time()
             self.db.created(self.record)
 
+    def start_frame(self):
+        self.t_start_frame = time.time()
+
+    def end_proc(self):
+        self.proc_time = time.time() - self.t_start_frame
+        self.sleep_s = max(1. / self.target_fps - self.proc_time, 0)
+
+    def count_frame_rate(self, reset=False):
+
+        if reset or self.frame_counter % (5 * 60 * self.target_fps) == 0:
+            log.info("avg. frame rate is {} fps".format(self.effective_fps))
+            self.t_start_counter = time.time()
+            self.frame_counter = 0
+
+        self.frame_counter = self.frame_counter + 1
+
+        if self.frame_counter % (30 * self.target_fps) == 0:
+            self.effective_fps = self.frame_counter / (time.time() - self.t_start_counter)
+
     def loop_forever(self):
 
         try:
             while True:  # send images until Ctrl-C
-
+                self.start_frame()
                 if self.camera.is_on():
                     ret, image = self.camera.cap.read()
                     self.camera.add_timestamp(image)
@@ -85,8 +112,9 @@ class AppLogic:
 
                 elif self.camera_should_be_running:
                     self.start_cam()
-
-                time.sleep(0.05)
+                self.count_frame_rate()
+                self.end_proc()
+                time.sleep(self.sleep_s)
 
         finally:
             log.info("stop things...")

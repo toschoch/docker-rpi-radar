@@ -69,7 +69,7 @@ class Camera:
     def start_recording(self, filename):
         if self.recorder is None:
             log.debug("started recording to file {}".format(filename))
-            self.recorder = cv2.VideoWriter(filename, self.codec, 10,
+            self.recorder = cv2.VideoWriter(filename, self.codec, 5,
                                             tuple(map(int, self.get_resolution())))
 
     def stop_recording(self):
