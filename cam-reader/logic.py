@@ -37,6 +37,7 @@ class AppLogic:
         self.mqtt.subscribe('{}/camera/{}/recording/toggle'.format(self.device_name, self.camera.camera_id), self.on_cam_recording_toggle)
         self.camera_state_topic = '{}/camera/{}/power/state'.format(self.device_name, self.camera.camera_id)
         self.recording_state_topic = '{}/camera/{}/recording/state'.format(self.device_name, self.camera.camera_id)
+        self.camera_fps_topic = '{}/camera/{}/fps'.format(self.device_name, self.camera.camera_id)
 
     def on_cam_toggle(self, client, userdata, msg):
         self.camera_should_be_running = bool(int(msg.payload))
@@ -95,6 +96,7 @@ class AppLogic:
 
         if reset or self.frame_counter % (5 * 60 * self.target_fps) == 0:
             log.info("avg. frame rate is {} fps".format(self.effective_fps))
+            self.mqtt.publish(self.camera_fps_topic, self.effective_fps)
             self.t_start_counter = time.time()
             self.frame_counter = 0
 
