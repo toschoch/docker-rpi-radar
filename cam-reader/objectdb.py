@@ -9,6 +9,7 @@ class Object:
     def __init__(self, **kwargs):
         suffix = kwargs.pop("suffix", "")
         base_path = kwargs.pop("base_path", "/data")
+        self.base_path = base_path
         self.meta = kwargs
         self.id = uuid.uuid4()
         self.path = Path(base_path).joinpath(str(self.id)).with_suffix(suffix)
@@ -16,7 +17,7 @@ class Object:
     @property
     def payload(self):
         p = self.meta.copy()
-        p.update({"id": str(self.id), "path": str(self.path)})
+        p.update({"id": str(self.id), "path": str(self.path.relative_to(self.base_path))})
         return p
 
 
