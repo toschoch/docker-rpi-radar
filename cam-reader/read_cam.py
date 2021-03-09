@@ -26,7 +26,7 @@ sender = imagezmq.ImageSender(connect_to="tcp://*:{}".format(port), REQ_REP=Fals
 
 rpi_name = "RadarPiCam"  # send RPi hostname with each image
 
-camera = Camera(0)
+camera = Camera()
 
 camera.switch_on()
 mqtt.start()
