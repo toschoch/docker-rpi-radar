@@ -10,7 +10,10 @@ service_name = "read-cam"
 
 class MQTTClient(mqtt.Client):
 
-    def __init__(self, userdata=None):
+    def __init__(self, userdata=None, qos=1, retain=True):
+
+        self.qos = qos
+        self.retain = retain
 
         device_name = os.environ['BALENA_DEVICE_NAME_AT_INIT']
 
@@ -23,7 +26,8 @@ class MQTTClient(mqtt.Client):
             username, pw = credentials.split(':')
 
         # Create client
-        mqtt.Client.__init__(self, client_id="{}/{}".format(device_name, service_name), userdata=userdata)
+        mqtt.Client.__init__(self, client_id="{}/{}".format(device_name, service_name), userdata=userdata,
+                             protocol=mqtt.MQTTv311)
         if len(username) > 0:
             self.username_pw_set(username, pw)
         self.enable_logger()
@@ -31,9 +35,12 @@ class MQTTClient(mqtt.Client):
 
         self.callbacks = {}
 
-    def subscribe(self, topic, callback):
+    def subscribe(self, topic, callback, **kwargs):
         self.callbacks[topic] = callback
-        mqtt.Client.subscribe(self, topic)
+        mqtt.Client.subscribe(self, topic, qos=kwargs.pop('qos', self.qos), **kwargs)
+
+    def publish(self, topic, payload=None, **kwargs):
+        mqtt.Client.publish(self, topic, payload, qos=kwargs.pop('qos', self.qos), retain=kwargs.pop('retain', self.retain), **kwargs)
 
     def on_message(self, client, userdata, msg):
         log.info("Message received-> " + msg.topic + " {}".format(msg.payload))  # Print a received msg
@@ -49,7 +56,7 @@ class MQTTClient(mqtt.Client):
 
         log.info("connect to mqtt broker...")
         mqtt.Client.connect(self, mqtt_broker_address.hostname,
-                            mqtt_broker_address.port, 60)
+                            mqtt_broker_address.port, keepalive=60)
 
     def start(self):
         self.connect()
