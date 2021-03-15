@@ -27,6 +27,7 @@ class MQTTClient(mqtt.Client):
 
         # Create client
         mqtt.Client.__init__(self, client_id="{}/{}".format(device_name, service_name), userdata=userdata,
+                             clean_session=False,
                              protocol=mqtt.MQTTv311)
         if len(username) > 0:
             self.username_pw_set(username, pw)
