@@ -48,14 +48,14 @@ class AppLogic:
     def start_cam(self):
         log.info("start {} on {}...".format(self.camera.name, self.device_name))
         self.camera.switch_on()
-        self.mqtt.publish(self.camera_state_topic, 1)
+        self.mqtt.publish(self.camera_state_topic, 1, retain=False)
 
     def stop_cam(self):
         log.info("stop {} on {}...".format(self.camera.name, self.device_name))
         self.camera.stop_recording()
-        self.mqtt.publish(self.recording_state_topic, 0)
+        self.mqtt.publish(self.recording_state_topic, 0, retain=False)
         self.camera.switch_off()
-        self.mqtt.publish(self.camera_state_topic, 0)
+        self.mqtt.publish(self.camera_state_topic, 0, retain=False)
 
     def start_recording(self):
         log.info("start recording on {} ({})...".format(self.camera.name, self.device_name))
@@ -70,12 +70,12 @@ class AppLogic:
                                   **self.camera.meta)
 
         self.camera.start_recording(str(self.record.path))
-        self.mqtt.publish(self.recording_state_topic, 1)
+        self.mqtt.publish(self.recording_state_topic, 1, retain=False)
 
     def stop_recording(self):
         log.info("stop recording on {} ({})...".format(self.camera.name, self.device_name))
         self.camera.stop_recording()
-        self.mqtt.publish(self.recording_state_topic, 0)
+        self.mqtt.publish(self.recording_state_topic, 0, retain=False)
         if self.record is not None:
             self.record.meta["end_time"] = time.time()
 
@@ -108,6 +108,11 @@ class AppLogic:
     def loop_forever(self):
 
         try:
+            if self.camera.is_on():
+                self.mqtt.publish(self.camera_state_topic, 1, retain=False)
+            else:
+                self.mqtt.publish(self.camera_state_topic, 1, retain=False)
+
             while True:  # send images until Ctrl-C
                 self.start_frame()
                 if self.camera.is_on():
