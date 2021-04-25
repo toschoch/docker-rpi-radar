@@ -15,6 +15,13 @@ services:
     volumes:
       - mosquitto-data:/mosquitto/data
 
+  storage-service:
+    image: shocki/rpi-objectapi
+    volumes:
+      - radar-data:/data
+    ports:
+      - 2020:80
+
   power-pijuice:
     image: shocki/rpi-pijuice-mqtt
     privileged: true
