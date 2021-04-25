@@ -24,7 +24,7 @@ class Object:
 
 
 class ObjectDB:
-    base_path = "http://localhost:8000"
+    base_path = os.environ.get("STORAGE_API_URL", "http://localhost:8000")
     new_topic = "store/objects/new"
     finalized_topic = "store/objects/created"
     deleted_topic = "store/objects/deleted"

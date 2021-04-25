@@ -73,6 +73,7 @@ services:
     labels:
       io.balena.features.kernel-modules: '1'
     environment:
+      - STORAGE_API_URL=storage-service
       - MQTT_BROKER_ADDRESS=tcp://mqtt-broker:1883
 
 #  camera-server:
