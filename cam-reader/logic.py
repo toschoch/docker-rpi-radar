@@ -63,13 +63,11 @@ class AppLogic:
             self.start_cam()
 
         self.camera.set_recording_fps(self.target_fps)
-        self.record = self.db.new(suffix='.mp4',
-                                  type='video',
-                                  start_time=time.time(),
-                                  device=self.device_name,
-                                  **self.camera.meta)
+        self.record = self.db.new(bucket='videos',
+                                  date=time.time(),
+                                  meta=self.camera.meta)
 
-        self.camera.start_recording(str(self.record.path))
+        self.camera.start_recording(str(self.record['location']))
         self.mqtt.publish(self.recording_state_topic, 1, retain=False)
 
     def stop_recording(self):
@@ -77,11 +75,11 @@ class AppLogic:
         self.camera.stop_recording()
         self.mqtt.publish(self.recording_state_topic, 0, retain=False)
         if self.record is not None:
-            self.record.meta["end_time"] = time.time()
+            self.record['meta']['end_time'] = time.time()
 
-            self.db.rename(self.record,
-                           path_string_function=lambda d: "{}".format(datetime.utcfromtimestamp(d['start_time'])
-                                                                      .strftime('%Y%m%dT%H%M%S')))
+            # self.db.rename(self.record,
+            #                path_string_function=lambda d: "{}".format(datetime.utcfromtimestamp(d['start_time'])
+            #                                                           .strftime('%Y%m%dT%H%M%S')))
 
             self.db.finalize(self.record)
 

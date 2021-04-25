@@ -3,6 +3,7 @@ import uuid
 import json
 import os
 import shutil
+import requests
 
 
 class Object:
@@ -23,18 +24,18 @@ class Object:
 
 
 class ObjectDB:
-    base_path = Path(os.environ.get('DB_PATH', '/data'))
+    base_path = "http://localhost:8000"
     new_topic = "store/objects/new"
     finalized_topic = "store/objects/created"
     deleted_topic = "store/objects/deleted"
 
     def __init__(self, mqtt):
         self.mqtt = mqtt
-        os.makedirs(self.base_path, exist_ok=True)
 
     def new(self, **kwargs) -> Object:
-        obj = Object(base_path=ObjectDB.base_path, **kwargs)
-        self.mqtt.publish(self.new_topic, payload=json.dumps(obj.payload), retain=False)
+        r = requests.put(self.base_path + "/objects", json=kwargs)
+        obj = r.json()
+        self.mqtt.publish(self.new_topic, payload=json.dumps(obj), retain=False)
         return obj
 
     def rename(self, obj: Object, path_format_string: str = None, path_string_function=None):
@@ -53,8 +54,10 @@ class ObjectDB:
         self.mqtt.publish(self.deleted_topic, payload=json.dumps(original_payload), retain=False)
         self.mqtt.publish(self.new_topic, payload=json.dumps(obj.payload), retain=False)
 
-    def finalize(self, obj: Object):
-        self.mqtt.publish(self.finalized_topic, payload=json.dumps(obj.payload), retain=False)
+    def finalize(self, obj: dict):
+        r = requests.post(self.base_path + "/objects/{}/finalize".format(obj['id']), json=obj)
+        obj = r.json()
+        self.mqtt.publish(self.finalized_topic, payload=json.dumps(obj), retain=False)
 
     def upload(self, obj: Object):
         self.mqtt.publish("store/objects/upload", payload=json.dumps(obj.payload), retain=False)

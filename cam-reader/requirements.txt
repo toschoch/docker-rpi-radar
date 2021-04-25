@@ -1,5 +1,6 @@
 numpy
 opencv-python
 imagezmq
-dotenv
+#dotenv
 paho-mqtt
+requests
