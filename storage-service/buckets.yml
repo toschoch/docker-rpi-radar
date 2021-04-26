@@ -1,0 +1,35 @@
+buckets:
+  - name: videos
+    mimetype: video/mp4
+    extension: mp4
+    filename_template: "{ date.strftime('%Y-%m-%d_%H-%M-%S') }" # automatically adds _{ id }.{ extension }
+    meta:
+        device: "{ ENVIRONMENT[BALENA_DEVICE_NAME_AT_INIT] }"
+    buffer:
+        max_size:
+            absolute: 10G
+            # proportional: 1
+            # fraction: 0.3
+        # maxage:
+            #age: P1m
+            #field: date
+  - name: rdms
+    mimetype: application/octet-stream
+    extension: arrow
+    filename_template: "{ date.strftime('%Y-%m-%d') }" # automatically adds _{{ id }}.{{ extension }}
+    meta:
+        device: "{ ENVIRONMENT[BALENA_DEVICE_NAME_AT_INIT] }"
+    buffer:
+        max_size:
+            absolute: 10G
+
+  - name: audios
+    mimetype: audio/mp3
+    extension: mp3
+    filename_template: "{ date }" # automatically adds _{{ id }}.{{ extension }}
+    meta:
+        device: "{ ENVIRONMENT[BALENA_DEVICE_NAME_AT_INIT] }"
+    buffer:
+        max_size:
+            absolute: 4k
+            extending: true

@@ -16,7 +16,7 @@ services:
       - mosquitto-data:/mosquitto/data
 
   storage-service:
-    image: shocki/rpi-objectapi
+    build: mqtt-broker
     volumes:
       - radar-data:/data
     ports:
