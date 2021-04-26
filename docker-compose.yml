@@ -16,7 +16,7 @@ services:
       - mosquitto-data:/mosquitto/data
 
   storage-service:
-    build: mqtt-broker
+    build: storage-service
     volumes:
       - radar-data:/data
     ports:
