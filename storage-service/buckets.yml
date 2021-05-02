@@ -2,34 +2,36 @@ buckets:
   - name: videos
     mimetype: video/mp4
     extension: mp4
-    filename_template: "{ date.strftime('%Y-%m-%d_%H-%M-%S') }" # automatically adds _{ id }.{ extension }
+    filename_template: "{ date.strftime('%Y%m%dT%H%M%SZ') }" # automatically adds _{ id }.{ extension }
     meta:
-        device: "{ ENVIRONMENT[BALENA_DEVICE_NAME_AT_INIT] }"
-    buffer:
-        max_size:
-            absolute: 10G
-            # proportional: 1
-            # fraction: 0.3
+      device: "{ ENVIRONMENT[BALENA_DEVICE_NAME_AT_INIT] }"
+    storage:
+      usual_object_size: 1M
+      margin_size: 1M
+      max_size:
+        absolute: 10M
+        # proportional: 1
+        # fraction: 0.3
         # maxage:
-            #age: P1m
-            #field: date
+        #age: P1m
+        #field: date
   - name: rdms
     mimetype: application/octet-stream
     extension: arrow
-    filename_template: "{ date.strftime('%Y-%m-%d') }" # automatically adds _{{ id }}.{{ extension }}
+    filename_template: "{ date.strftime('%Y%m%dT%H%M%SZ') }" # automatically adds _{ id }.{ extension }
     meta:
-        device: "{ ENVIRONMENT[BALENA_DEVICE_NAME_AT_INIT] }"
-    buffer:
-        max_size:
-            absolute: 10G
+      device: "{ ENVIRONMENT[BALENA_DEVICE_NAME_AT_INIT] }"
+    storage:
+      max_size:
+        absolute: 10G
 
   - name: audios
     mimetype: audio/mp3
     extension: mp3
-    filename_template: "{ date }" # automatically adds _{{ id }}.{{ extension }}
+    filename_template: "{ date.strftime('%Y%m%dT%H%M%SZ') }" # automatically adds _{ id }.{ extension }
     meta:
-        device: "{ ENVIRONMENT[BALENA_DEVICE_NAME_AT_INIT] }"
-    buffer:
-        max_size:
-            absolute: 4k
-            extending: true
+      device: "{ ENVIRONMENT[BALENA_DEVICE_NAME_AT_INIT] }"
+    storage:
+      max_size:
+        absolute: 4k
+        extending: true

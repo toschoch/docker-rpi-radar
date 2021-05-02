@@ -55,7 +55,7 @@ class ObjectDB:
         self.mqtt.publish(self.new_topic, payload=json.dumps(obj.payload), retain=False)
 
     def finalize(self, obj: dict):
-        r = requests.post(self.base_path + "/objects/{}/finalize".format(obj['id']), json=obj)
+        r = requests.post(self.base_path + "/objects/finalize", json=obj)
         obj = r.json()
         self.mqtt.publish(self.finalized_topic, payload=json.dumps(obj), retain=False)
 
