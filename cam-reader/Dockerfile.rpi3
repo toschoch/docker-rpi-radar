@@ -11,6 +11,8 @@ RUN install_packages libaom0 libatk-bridge2.0-0 libatk1.0-0 libatlas3-base libat
 COPY requirements.txt ./
 RUN pip install -r requirements.txt
 
+COPY storageapi ./
 COPY *.py ./
+
 
 CMD ["python3", "read_cam.py"]
