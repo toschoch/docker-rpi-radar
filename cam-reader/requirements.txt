@@ -4,3 +4,4 @@ imagezmq
 #dotenv
 paho-mqtt
 requests
+pydantic
