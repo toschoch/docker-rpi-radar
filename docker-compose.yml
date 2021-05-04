@@ -26,6 +26,8 @@ services:
   power-pijuice:
     image: shocki/rpi-pijuice-mqtt
     privileged: true
+    volumes:
+      - radar-data:/data
     environment:
       - MQTT_BROKER_ADDRESS=http://mqtt-broker:1883
 
