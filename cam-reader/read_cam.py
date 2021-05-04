@@ -10,7 +10,7 @@ import logging
 import imagezmq
 from logic import AppLogic
 from mqtt import MQTTClient
-from objectdb import ObjectDB
+from storageapi.client import Client
 
 
 logging.basicConfig(level=logging.DEBUG)
@@ -18,7 +18,7 @@ log = logging.getLogger()
 
 mqtt = MQTTClient()
 
-db = ObjectDB(mqtt)
+storage = Client(os.environ.get("STORAGE_API_URL"))
 
 # Accept connections on all tcp addresses, port xxxx
 port = os.environ.get("ZMQ_PORT", "5553")
@@ -31,6 +31,6 @@ camera = Camera()
 camera.switch_on()
 mqtt.start()
 
-logic = AppLogic(camera, mqtt, db, sender)
+logic = AppLogic(camera, mqtt, storage, sender)
 
 logic.loop_forever()

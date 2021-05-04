@@ -1,4 +1,4 @@
-from objectdb import ObjectDB
+from storageapi.client import Client
 from camera import Camera
 from mqtt import MQTTClient
 import imagezmq
@@ -12,10 +12,10 @@ log = logging.getLogger(__name__)
 
 class AppLogic:
 
-    def __init__(self, camera: Camera, mqtt: MQTTClient, db: ObjectDB, streamer: imagezmq.ImageSender):
+    def __init__(self, camera: Camera, mqtt: MQTTClient, storage: Client, streamer: imagezmq.ImageSender):
         self.camera = camera
         self.mqtt = mqtt
-        self.db = db
+        self.storage = storage
         self.streamer = streamer
 
         self.device_name = os.environ['BALENA_DEVICE_NAME_AT_INIT']
@@ -48,14 +48,14 @@ class AppLogic:
     def start_cam(self):
         log.info("start {} on {}...".format(self.camera.name, self.device_name))
         self.camera.switch_on()
-        self.mqtt.publish(self.camera_state_topic, 1, retain=False)
+        self.mqtt.publish(self.camera_state_topic, 1)
 
     def stop_cam(self):
         log.info("stop {} on {}...".format(self.camera.name, self.device_name))
         self.camera.stop_recording()
-        self.mqtt.publish(self.recording_state_topic, 0, retain=False)
+        self.mqtt.publish(self.recording_state_topic, 0)
         self.camera.switch_off()
-        self.mqtt.publish(self.camera_state_topic, 0, retain=False)
+        self.mqtt.publish(self.camera_state_topic, 0)
 
     def start_recording(self):
         log.info("start recording on {} ({})...".format(self.camera.name, self.device_name))
@@ -63,25 +63,18 @@ class AppLogic:
             self.start_cam()
 
         self.camera.set_recording_fps(self.target_fps)
-        self.record = self.db.new(bucket='videos',
-                                  date=time.time(),
-                                  meta=self.camera.meta)
+        self.record = self.storage.create(bucket='videos', date=time.time(), meta=self.camera.meta)
 
-        self.camera.start_recording(str(self.record['location']))
-        self.mqtt.publish(self.recording_state_topic, 1, retain=False)
+        self.camera.start_recording(str(self.record.location))
+        self.mqtt.publish(self.recording_state_topic, 1)
 
     def stop_recording(self):
         log.info("stop recording on {} ({})...".format(self.camera.name, self.device_name))
         self.camera.stop_recording()
-        self.mqtt.publish(self.recording_state_topic, 0, retain=False)
+        self.mqtt.publish(self.recording_state_topic, 0)
         if self.record is not None:
-            self.record['meta']['end_time'] = time.time()
-
-            # self.db.rename(self.record,
-            #                path_string_function=lambda d: "{}".format(datetime.utcfromtimestamp(d['start_time'])
-            #                                                           .strftime('%Y%m%dT%H%M%S')))
-
-            self.db.finalize(self.record)
+            self.record.meta['end_time'] = time.time()
+            self.storage.finalize(self.record)
 
     def start_frame(self):
         self.t_start_frame = time.time()
@@ -107,9 +100,9 @@ class AppLogic:
 
         try:
             if self.camera.is_on():
-                self.mqtt.publish(self.camera_state_topic, 1, retain=False)
+                self.mqtt.publish(self.camera_state_topic, 1)
             else:
-                self.mqtt.publish(self.camera_state_topic, 1, retain=False)
+                self.mqtt.publish(self.camera_state_topic, 1)
 
             while True:  # send images until Ctrl-C
                 self.start_frame()
