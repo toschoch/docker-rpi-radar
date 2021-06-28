@@ -41,6 +41,8 @@ services:
     image: shocki/rpi-rdm-processor
     ports:
       - 5556:5556
+    volumes:
+      - radar-data:/data
     environment:
       - ZMQ_INPUT=radar-reader:5555
       - STORAGE_API_URL=http://storage-service
