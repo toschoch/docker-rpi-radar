@@ -1,11 +1,12 @@
-from storageapi.client import Client
+import logging
+import os
+import time
+
+import imagezmq
+
 from camera import Camera
 from mqtt import MQTTClient
-import imagezmq
-import time
-from datetime import datetime
-import os
-import logging
+from storageapi.client import Client
 
 log = logging.getLogger(__name__)
 
@@ -33,8 +34,10 @@ class AppLogic:
         self.proc_time = 0.05
         self.sleep_s = 1. / self.target_fps - self.proc_time
 
-        self.mqtt.subscribe('{}/camera/{}/power/toggle'.format(self.device_name, self.camera.camera_id), self.on_cam_toggle)
-        self.mqtt.subscribe('{}/camera/{}/recording/toggle'.format(self.device_name, self.camera.camera_id), self.on_cam_recording_toggle)
+        self.mqtt.subscribe('{}/camera/{}/power/toggle'.format(self.device_name, self.camera.camera_id),
+                            self.on_cam_toggle)
+        self.mqtt.subscribe('{}/camera/{}/recording/toggle'.format(self.device_name, self.camera.camera_id),
+                            self.on_cam_recording_toggle)
         self.camera_state_topic = '{}/camera/{}/power/state'.format(self.device_name, self.camera.camera_id)
         self.recording_state_topic = '{}/camera/{}/recording/state'.format(self.device_name, self.camera.camera_id)
         self.camera_fps_topic = '{}/camera/{}/fps'.format(self.device_name, self.camera.camera_id)

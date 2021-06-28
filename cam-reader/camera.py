@@ -5,14 +5,14 @@ import logging
 font = cv2.FONT_HERSHEY_SIMPLEX
 bottomLeftCornerOfText = (10, 440)
 fontScale = 0.75
-fontColor = (255, 255, 255)
+fontColor = <255, 255, 255>
 lineType = 2
 
 log = logging.getLogger(__name__)
 
 
 class Camera:
-    codec_description = 'mp4v'
+    codec_description = 'X264'
 
     def __init__(self, camera_id: int = 1):
         self.cap = None
