@@ -9,7 +9,7 @@ buckets:
       usual_object_size: 1M
       margin_size: 1M
       max_size:
-        absolute: 10M
+        absolute: 1G
         # proportional: 1
         # fraction: 0.3
         # maxage:
@@ -23,7 +23,7 @@ buckets:
       device: "{ ENVIRONMENT[BALENA_DEVICE_NAME_AT_INIT] }"
     storage:
       max_size:
-        absolute: 10G
+        absolute: 2G
 
   - name: audios
     mimetype: audio/mp3
