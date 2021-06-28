@@ -43,6 +43,8 @@ services:
       - 5556:5556
     environment:
       - ZMQ_INPUT=radar-reader:5555
+      - STORAGE_API_URL=http://storage-service
+      - MQTT_BROKER_ADDRESS=tcp://mqtt-broker:1883
 
   radar-reader:
     image: shocki/rpi-radar-reader:0.0.3
