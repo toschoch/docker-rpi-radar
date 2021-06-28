@@ -1,42 +1,67 @@
-import zmq
 import pyarrow as pa
-from zmqarrow import ZmqArrow
-import os
-import time
-from processings import RDMProcessor
+from pyarrow import fs
+from datetime import timedelta
+import numpy as np
+from storageapi.client import Client
 import logging
 
-logging.basicConfig(level=logging.INFO)
-log = logging.getLogger()
 
-n_fft_range = 384
-n_fft_doppler = 256
+class Buffer:
+
+    def __init__(self, storage_client: Client):
+
+        self.period_per_file = timedelta(minutes=1)
+
+        self.times = []
+        self.amps = []
+        self.phases = []
+
+        self.client = storage_client
+        self.local = fs.LocalFileSystem()
+        self.log = logging.getLogger('Buffer')
+
+    def clear(self):
+        self.log.debug("clear buffer...")
+        self.times.clear()
+        self.amps.clear()
+        # self.phases.clear()
+
+    def append(self, t, amp):#, phases):
+
+        if len(self.times) > 0 and (t - self.times[0]) > self.period_per_file:
+            self.store()
+
+        self.times.append(t)
+        self.amps.append(amp)
+        # self.phases.append(phases)
+        self.log.debug("added to buffer (current length {})".format(len(self.times)))
+
+    def store(self):
+
+        times = np.array(self.times)
+        amps = np.array(self.amps)
+        # phs = np.array(self.phases)
+
+        self.log.info("create data object of {}...".format(amps.shape))
+        rec = self.client.create(bucket='rdms', date=times[-1], meta={
+            'samples': amps.shape[0],
+            'start_time': times[0],
+            'end_time': times[-1]
+        })
+
+        times = pa.Tensor.from_numpy(times.astype(np.datetime64).astype(int))
+        amps = pa.Tensor.from_numpy(amps)
+        # phs = pa.Tensor.from_numpy(phs)
+
+        with self.local.open_output_stream(rec.location) as file:
+            pa.ipc.write_tensor(times, file)
+            pa.ipc.write_tensor(amps, file)
+            # pa.ipc.write_tensor(phs, file)
+
+        rec = self.client.finalize(rec)
+        self.log.info("data object created ({})!.".format(rec.location))
+        self.clear()
 
 
-log.info("RDM processing with range fft {} and doppler fft {}".format(n_fft_range, n_fft_doppler))
-zmq_input = os.environ.get("ZMQ_INPUT", "localhost:5555")
-input_address = "tcp://{}".format(zmq_input)
-log.info("Listen on {}".format(input_address))
-port = os.environ.get("ZMQ_PORT", "5556")
-log.info("Result is served on port {}".format(port))
 
-processor = RDMProcessor(n_fft_range, n_fft_doppler)
-
-log_every_n_second = 120
-t_last_log = time.time()
-frames_processed = 0
-
-log.info("start processing...")
-with ZmqArrow(address=input_address) as sub:
-    with ZmqArrow(address="tcp://*:{}".format(port), socket_type=zmq.PUB) as pub:
-        while True:
-            t, tensor = sub.zmq_socket.recv_time_and_tensor(copy=False)
-            amp, phases = processor.process_fft(tensor.to_numpy())
-            pub.zmq_socket.send_time_and_tensor(t, pa.Tensor.from_numpy(amp), copy=False)
-
-            frames_processed += 1
-            t = time.time()
-            if frames_processed == 1 or ((t - t_last_log) > log_every_n_second):
-                log.info("{} frames processed".format(frames_processed))
-                t_last_log = t
 
