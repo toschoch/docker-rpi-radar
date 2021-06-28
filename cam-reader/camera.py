@@ -5,7 +5,7 @@ import logging
 font = cv2.FONT_HERSHEY_SIMPLEX
 bottomLeftCornerOfText = (10, 440)
 fontScale = 0.75
-fontColor = <255, 255, 255>
+fontColor = (255, 255, 255)
 lineType = 2
 
 log = logging.getLogger(__name__)
