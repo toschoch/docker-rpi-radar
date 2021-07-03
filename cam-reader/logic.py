@@ -51,14 +51,14 @@ class AppLogic:
     def start_cam(self):
         log.info("start {} on {}...".format(self.camera.name, self.device_name))
         self.camera.switch_on()
-        self.mqtt.publish(self.camera_state_topic, 1)
+        self.mqtt.publish_timed_value(self.camera_state_topic, 1)
 
     def stop_cam(self):
         log.info("stop {} on {}...".format(self.camera.name, self.device_name))
         self.camera.stop_recording()
-        self.mqtt.publish(self.recording_state_topic, 0)
+        self.mqtt.publish_timed_value(self.recording_state_topic, 0)
         self.camera.switch_off()
-        self.mqtt.publish(self.camera_state_topic, 0)
+        self.mqtt.publish_timed_value(self.camera_state_topic, 0)
 
     def start_recording(self):
         log.info("start recording on {} ({})...".format(self.camera.name, self.device_name))
@@ -69,12 +69,12 @@ class AppLogic:
         self.record = self.storage.create(bucket='videos', date=time.time(), meta=self.camera.meta)
 
         self.camera.start_recording(str(self.record.location))
-        self.mqtt.publish(self.recording_state_topic, 1)
+        self.mqtt.publish_timed_value(self.recording_state_topic, 1)
 
     def stop_recording(self):
         log.info("stop recording on {} ({})...".format(self.camera.name, self.device_name))
         self.camera.stop_recording()
-        self.mqtt.publish(self.recording_state_topic, 0)
+        self.mqtt.publish_timed_value(self.recording_state_topic, 0)
         if self.record is not None:
             self.record.meta['end_time'] = time.time()
             self.storage.finalize(self.record)
@@ -90,7 +90,7 @@ class AppLogic:
 
         if reset or self.frame_counter % (5 * 60 * self.target_fps) == 0:
             log.info("avg. frame rate is {} fps".format(self.effective_fps))
-            self.mqtt.publish(self.camera_fps_topic, self.effective_fps)
+            self.mqtt.publish_timed_value(self.camera_fps_topic, self.effective_fps)
             self.t_start_counter = time.time()
             self.frame_counter = 0
 
@@ -103,9 +103,9 @@ class AppLogic:
 
         try:
             if self.camera.is_on():
-                self.mqtt.publish(self.camera_state_topic, 1)
+                self.mqtt.publish_timed_value(self.camera_state_topic, 1)
             else:
-                self.mqtt.publish(self.camera_state_topic, 1)
+                self.mqtt.publish_timed_value(self.camera_state_topic, 1)
 
             while True:  # send images until Ctrl-C
                 self.start_frame()

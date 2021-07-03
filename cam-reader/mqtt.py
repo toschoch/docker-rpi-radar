@@ -1,12 +1,18 @@
+import datetime
 import logging
 import os
+import time
 from urllib.parse import urlparse
 
 import paho.mqtt.client as mqtt
+import pytz.reference
 
 log = logging.getLogger(__name__)
 
 service_name = "read-cam"
+
+epoch = datetime.datetime.utcfromtimestamp(0)
+epoch = epoch.replace(tzinfo=pytz.utc)
 
 
 class MQTTClient(mqtt.Client):
@@ -44,6 +50,18 @@ class MQTTClient(mqtt.Client):
     def publish(self, topic, payload=None, **kwargs):
         mqtt.Client.publish(self, topic, payload, qos=kwargs.pop('qos', self.qos),
                             retain=kwargs.pop('retain', self.retain), **kwargs)
+
+    def publish_timed_value(self, topic, value, t: datetime.datetime = None, **kwargs):
+
+        if t is None:
+            t = int(time.time() * 1000)
+        else:
+            if t.tzinfo is None:
+                t.replace(tzinfo=pytz.utc)
+            t = int((t - epoch).total_seconds() * 1000)
+
+        self.publish(topic, {'timeMilliseconds': t,
+                             'value': value}, **kwargs)
 
     def on_message(self, client, userdata, msg):
         log.info("Message received-> " + msg.topic + " {}".format(msg.payload))  # Print a received msg
