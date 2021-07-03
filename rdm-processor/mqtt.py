@@ -5,7 +5,7 @@ import paho.mqtt.client as mqtt
 
 log = logging.getLogger(__name__)
 
-service_name = "read-cam"
+service_name = "rdm-processor"
 
 
 class MQTTClient(mqtt.Client):
