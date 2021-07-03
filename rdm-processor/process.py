@@ -1,5 +1,7 @@
+import datetime
 import json
 
+import pytz
 import zmq
 import pyarrow as pa
 from zmqarrow import ZmqArrow
@@ -19,7 +21,6 @@ n_fft_range = 384
 n_fft_doppler = 256
 
 device_name = os.environ['BALENA_DEVICE_NAME_AT_INIT']
-
 
 log.info("RDM processing with range fft {} and doppler fft {}".format(n_fft_range, n_fft_doppler))
 zmq_input = os.environ.get("ZMQ_INPUT", "localhost:5555")
@@ -43,6 +44,9 @@ frames_processed = 0
 filter = Filter(3)
 filter_bg = Filter(300)
 
+epoch = datetime.datetime.utcfromtimestamp(0)
+epoch = epoch.replace(tzinfo=pytz.utc)
+
 log.info("start processing...")
 with ZmqArrow(address=input_address) as sub:
     with ZmqArrow(address="tcp://*:{}".format(port), socket_type=zmq.PUB) as pub:
@@ -59,7 +63,7 @@ with ZmqArrow(address=input_address) as sub:
             pub.zmq_socket.send_time_and_tensor(t_frame, pa.Tensor.from_numpy(img), copy=False)
 
             mqtt.publish('{}/radar/activity/max'.format(device_name),
-                         payload=json.dumps({'time': t_frame.isoformat(), 'value': img.max()}))
+                         payload=json.dumps({'timeMilliseconds': (t_frame-epoch).total_seconds() * 1000, 'value': img.max()}))
 
             frames_processed += 1
             t = time.time()
@@ -67,4 +71,3 @@ with ZmqArrow(address=input_address) as sub:
             if frames_processed == 1 or ((t - t_last_log) > log_every_n_second):
                 log.info("{} frames processed".format(frames_processed))
                 t_last_log = t
-
