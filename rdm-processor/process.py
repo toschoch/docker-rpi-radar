@@ -58,6 +58,9 @@ with ZmqArrow(address=input_address) as sub:
 
             pub.zmq_socket.send_time_and_tensor(t_frame, pa.Tensor.from_numpy(img), copy=False)
 
+            mqtt.publish('{}/radar/activity/max'.format(device_name),
+                         payload=json.dumps({'time': t_frame.isoformat(), 'value': img.max()}))
+
             frames_processed += 1
             t = time.time()
 

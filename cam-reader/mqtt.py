@@ -1,6 +1,7 @@
 import logging
 import os
 from urllib.parse import urlparse
+
 import paho.mqtt.client as mqtt
 
 log = logging.getLogger(__name__)
@@ -41,7 +42,8 @@ class MQTTClient(mqtt.Client):
         mqtt.Client.subscribe(self, topic, qos=kwargs.pop('qos', self.qos), **kwargs)
 
     def publish(self, topic, payload=None, **kwargs):
-        mqtt.Client.publish(self, topic, payload, qos=kwargs.pop('qos', self.qos), retain=kwargs.pop('retain', self.retain), **kwargs)
+        mqtt.Client.publish(self, topic, payload, qos=kwargs.pop('qos', self.qos),
+                            retain=kwargs.pop('retain', self.retain), **kwargs)
 
     def on_message(self, client, userdata, msg):
         log.info("Message received-> " + msg.topic + " {}".format(msg.payload))  # Print a received msg
@@ -65,4 +67,3 @@ class MQTTClient(mqtt.Client):
 
     def stop(self):
         self.loop_stop()
-
