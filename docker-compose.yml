@@ -1,6 +1,11 @@
 version: '2'
 services:
 
+  configs:
+    build: configurations/.
+    volumes:
+      - config:/config
+
   data-loader:
     image: httpd:2.4.46-alpine
     ports:
@@ -17,9 +22,10 @@ services:
     restart: unless-stopped
 
   storage-service:
-    build: storage-service
+    image: shocki/rpi-storageapi
     volumes:
       - radar-data:/data
+      - config:/config
     ports:
       - 2020:80
 
@@ -87,3 +93,4 @@ volumes:
   radar-data:
   mosquitto-data:
   mosquitto-conf:
+  config:
