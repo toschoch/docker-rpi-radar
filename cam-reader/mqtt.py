@@ -1,4 +1,5 @@
 import datetime
+import json
 import logging
 import os
 import time
@@ -60,8 +61,8 @@ class MQTTClient(mqtt.Client):
                 t.replace(tzinfo=pytz.utc)
             t = int((t - epoch).total_seconds() * 1000)
 
-        self.publish(topic, {'timeMilliseconds': t,
-                             'value': value}, **kwargs)
+        self.publish(topic, json.dumps({'timeMilliseconds': t,
+                             'value': value}), **kwargs)
 
     def on_message(self, client, userdata, msg):
         log.info("Message received-> " + msg.topic + " {}".format(msg.payload))  # Print a received msg
