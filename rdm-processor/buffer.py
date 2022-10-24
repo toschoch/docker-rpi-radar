@@ -49,7 +49,7 @@ class Buffer:
             'end_time': times[-1]
         })
 
-        times = pa.Tensor.from_numpy(times.astype(np.datetime64).astype(int))
+        times = pa.Tensor.from_numpy(times.astype(np.datetime64).astype(np.int))
         amps = pa.Tensor.from_numpy(amps)
         # phs = pa.Tensor.from_numpy(phs)
 

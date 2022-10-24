@@ -1,18 +1,19 @@
 import datetime
 import json
-
-import pytz
-import zmq
-import pyarrow as pa
-from zmqarrow import ZmqArrow
+import logging
 import os
 import time
-from processings import RDMProcessor
+
+import pyarrow as pa
+import pytz
+import zmq
+
 from buffer import Buffer
-from storageapi.client import Client
 from lowpass import Filter
 from mqtt import MQTTClient
-import logging
+from processings import RDMProcessor
+from storageapi.client import Client
+from zmqarrow import ZmqArrow
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger()
@@ -63,7 +64,8 @@ with ZmqArrow(address=input_address) as sub:
             pub.zmq_socket.send_time_and_tensor(t_frame, pa.Tensor.from_numpy(img), copy=False)
 
             mqtt.publish('{}/radar/activity/max'.format(device_name),
-                         payload=json.dumps({'timeMilliseconds': round((t_frame-epoch).total_seconds() * 1000), 'value': img.max()}))
+                         payload=json.dumps(
+                             {'timeMilliseconds': int((t_frame - epoch).total_seconds() * 1000), 'value': img.max()}))
 
             frames_processed += 1
             t = time.time()
