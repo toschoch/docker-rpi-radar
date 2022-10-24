@@ -29,13 +29,13 @@ services:
     ports:
       - 2020:80
 
-  power-pijuice:
-    image: shocki/rpi-pijuice-mqtt
-    privileged: true
-    volumes:
-      - radar-data:/data
-    environment:
-      - MQTT_BROKER_ADDRESS=http://mqtt-broker:1883
+#  power-pijuice:
+#    image: shocki/rpi-pijuice-mqtt
+#    privileged: true
+#    volumes:
+#      - radar-data:/data
+#    environment:
+#      - MQTT_BROKER_ADDRESS=http://mqtt-broker:1883
 
   usb-power:
     image: shocki/rpi-mqtt-usb-power-switch
@@ -43,16 +43,16 @@ services:
     environment:
       - MQTT_BROKER_ADDRESS=http://mqtt-broker:1883
 
-  rdm-processor:
-    image: shocki/rpi-rdm-processor
-    ports:
-      - 5556:5556
-    volumes:
-      - radar-data:/data
-    environment:
-      - ZMQ_INPUT=radar-reader:5555
-      - STORAGE_API_URL=http://storage-service
-      - MQTT_BROKER_ADDRESS=tcp://mqtt-broker:1883
+#  rdm-processor:
+#    image: shocki/rpi-rdm-processor
+#    ports:
+#      - 5556:5556
+#    volumes:
+#      - radar-data:/data
+#    environment:
+#      - ZMQ_INPUT=radar-reader:5555
+#      - STORAGE_API_URL=http://storage-service
+#      - MQTT_BROKER_ADDRESS=tcp://mqtt-broker:1883
 
   radar-reader:
     image: shocki/rpi-radar-reader:0.0.3
@@ -62,6 +62,7 @@ services:
       - 5555:5555
     labels:
       io.balena.features.kernel-modules: '1'
+      io.balena.features.features.sysfs: '1'
     volumes:
       - radar-data:/radar
     environment:
