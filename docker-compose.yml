@@ -9,14 +9,14 @@ services:
   data-loader:
     image: httpd:2.4.46-alpine
     ports:
-      - 80:80
+      - "80:80"
     volumes:
         - radar-data:/usr/local/apache2/htdocs/
 
   mqtt-broker:
     build: mqtt-broker
     ports:
-      - 1883:1883
+      - "1883:1883"
     volumes:
       - mosquitto-data:/mosquitto/data
     restart: unless-stopped
@@ -27,7 +27,7 @@ services:
       - radar-data:/data
       - config:/config
     ports:
-      - 2020:80
+      - "2020:80"
 
 #  power-pijuice:
 #    image: shocki/rpi-pijuice-mqtt
@@ -55,14 +55,13 @@ services:
 #      - MQTT_BROKER_ADDRESS=tcp://mqtt-broker:1883
 
   radar-reader:
-    image: shocki/rpi-radar-reader:1-1-1
+    image: shocki/rpi-radar-reader:1-2-1
     privileged: true
     restart: always
     ports:
-      - 5555:5555
+      - "5555:5555"
     labels:
       io.balena.features.kernel-modules: '1'
-      io.balena.features.features.sysfs: '1'
     volumes:
       - radar-data:/radar
     environment:
@@ -83,7 +82,7 @@ services:
     volumes:
       - radar-data:/data
     ports:
-      - 5553:5553
+      - "5553:5553"
     labels:
       io.balena.features.kernel-modules: '1'
     environment:
