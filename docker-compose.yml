@@ -55,7 +55,7 @@ services:
 #      - MQTT_BROKER_ADDRESS=tcp://mqtt-broker:1883
 
   radar-reader:
-    image: shocki/rpi-radar-reader:1-2-3
+    image: shocki/rpi-radar-reader:1-2-4
     privileged: true
     restart: always
     ports:
