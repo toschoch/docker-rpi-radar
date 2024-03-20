@@ -14,4 +14,4 @@ RUN chmod +x /mosquitto/hc.sh /docker-entrypoint.sh /expand_vars.sh
 HEALTHCHECK --start-period=5s --timeout=10s --interval=180s --retries=1 \
     CMD /mosquitto/hc.sh
 
-CMD ["/usr/sbin/mosquitto", "-c", "$CONFIG_FILE"]
+CMD /usr/sbin/mosquitto -c $CONFIG_FILE
