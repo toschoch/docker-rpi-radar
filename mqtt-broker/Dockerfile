@@ -5,7 +5,8 @@ COPY passwd /mosquitto/config/passwd
 COPY hc.sh /mosquitto/hc.sh
 
 COPY docker-entrypoint.sh /
-RUN chmod +x /mosquitto/hc.sh /docker-entrypoint.sh
+COPY expand_vars.sh /
+RUN chmod +x /mosquitto/hc.sh /docker-entrypoint.sh /expand_vars.sh
 
 HEALTHCHECK --start-period=5s --timeout=10s --interval=180s --retries=1 \
     CMD /mosquitto/hc.sh
