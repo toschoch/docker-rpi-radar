@@ -3,11 +3,11 @@ set -e
 
 
 # Expand variables in config file
-configfile="/mosquitto.conf"
+configfile="${CONFIG_FILE}"
 echo "expand variables in $configfile..."
-./expand_vars.sh $configfile
+./expand_vars.sh "$configfile"
 echo "config is now:"
-cat $configfile
+cat "$configfile"
 
 # Set permissions
 user="$(id -u)"
