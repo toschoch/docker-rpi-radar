@@ -37,15 +37,22 @@ services:
     environment:
       - MQTT_BROKER_ADDRESS=http://mqtt-broker:1883
 
-  pijuice-gui:
-    build: pijuice-gui
-    restart: no
-
   usb-power:
     image: shocki/rpi-mqtt-usb-power-switch
     privileged: true
     environment:
       - MQTT_BROKER_ADDRESS=http://mqtt-broker:1883
+
+#  rdm-processor:
+#    image: shocki/rpi-rdm-processor
+#    ports:
+#      - 5556:5556
+#    volumes:
+#      - radar-data:/data
+#    environment:
+#      - ZMQ_INPUT=radar-reader:5555
+#      - STORAGE_API_URL=http://storage-service
+#      - MQTT_BROKER_ADDRESS=tcp://mqtt-broker:1883
 
   radar-reader:
     image: shocki/rpi-radar-reader:1-2-5
@@ -60,18 +67,27 @@ services:
     environment:
       - MQTT_BROKER=tcp://mqtt-broker:1883
 
-  cam-reader:
-    image: shocki/rpi-cam-reader
-    privileged: true
-    volumes:
-      - radar-data:/data
-    ports:
-      - "5553:5553"
-    labels:
-      io.balena.features.kernel-modules: '1'
-    environment:
-      - STORAGE_API_URL=http://storage-service
-      - MQTT_BROKER_ADDRESS=tcp://mqtt-broker:1883
+#  mic-reader:
+#    image: shocki/rpi-mic-stream
+#    privileged: true
+#    ports:
+#      - 5554:5554
+#    labels:
+#      io.balena.features.kernel-modules: '1'
+#    command: -ac 1 -ar 8000 -f alsa -i hw:1,0 -acodec mp3 -b:a 128k -f rtp rtp://0.0.0.0:5554
+
+#  cam-reader:
+#    image: shocki/rpi-cam-reader
+#    privileged: true
+#    volumes:
+#      - radar-data:/data
+#    ports:
+#      - "5553:5553"
+#    labels:
+#      io.balena.features.kernel-modules: '1'
+#    environment:
+#      - STORAGE_API_URL=http://storage-service
+#      - MQTT_BROKER_ADDRESS=tcp://mqtt-broker:1883
 
 volumes:
   radar-data:
