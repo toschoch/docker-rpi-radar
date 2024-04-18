@@ -37,12 +37,8 @@ services:
     environment:
       - MQTT_BROKER_ADDRESS=http://mqtt-broker:1883
 
-#  pijuice-gui:
-#    build: pijuice-gui
-#    restart: no
-
   usb-power:
-    image: shocki/rpi-mqtt-usb-power-switch
+    image: shocki/rpi-mqtt-usb-power-switch:0.2.2
     privileged: true
     environment:
       - MQTT_BROKER_ADDRESS=http://mqtt-broker:1883
