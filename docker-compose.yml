@@ -1,11 +1,6 @@
 version: '2'
 services:
 
-  configs:
-    build: configurations/.
-    volumes:
-      - config:/config
-
   data-loader:
     image: httpd:2.4.46-alpine
     ports:
