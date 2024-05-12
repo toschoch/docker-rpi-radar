@@ -16,6 +16,18 @@ services:
       - mosquitto-data:/mosquitto/data
     restart: unless-stopped
 
+  config-manager:
+    image: shocki/radr-config-manager
+    environment:
+      - MQTT_BROKER_ADDRESS=http://mqtt-broker:1883
+      - RADR_CONFIG_DIRECTORY=/config
+      - RADR_VAR_DIRECTORY=/var
+      - RADR_AUTOMATIC_CONFIG_UPDATES=true
+    volumes:
+      - config:/config
+      - var:/var
+    restart: unless-stopped
+
   storage-service:
     image: shocki/rpi-storageapi
     volumes:
