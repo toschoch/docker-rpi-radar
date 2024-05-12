@@ -25,7 +25,7 @@ services:
       - RADR_AUTOMATIC_CONFIG_UPDATES=true
     volumes:
       - config:/config
-      - var:/var
+      - config-manager:/var
     restart: unless-stopped
 
   storage-service:
@@ -99,5 +99,5 @@ services:
 volumes:
   radar-data:
   mosquitto-data:
-  mosquitto-conf:
+  config-manager:
   config:
